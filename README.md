@@ -22,6 +22,10 @@ The following command line options are available:
 
 The output will be a comma-separated list of frame number, SI and TI values.
 
+## Acknowledgement
+
+If you use this program for your research, please provide a link to this repository when publishing your results.
+
 ## Building from source
 
 The source code is available as a Visual Studio project. See the `src` folder for more. Open `src/SITI.sln` for building it. Requirements:
