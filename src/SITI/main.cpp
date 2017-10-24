@@ -19,26 +19,25 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <tuple>  // c++11 feature
+#include <functional> // c++11 feature
 
-#include <boost/lexical_cast.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/program_options.hpp>
+#include "cxxopts.hpp"  // cli argument parsing
+
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-typedef boost::tuple<int, double, double> TSTD;
+typedef std::tuple<int, double, double> TSTD;
 
 void add(TSTD &tuple, double v) {
-	++tuple.get<0>();
-	tuple.get<1>() += v;
-	tuple.get<2>() += v*v;
+	std::get<0>(tuple) ++;
+	std::get<1>(tuple) += v;
+	std::get<2>(tuple) += v*v;
 }
 
 double stdev(const TSTD &tuple) {
-	return sqrt((tuple.get<2>() / tuple.get<0>()) - (tuple.get<1>() / tuple.get<0>())*(tuple.get<1>() / tuple.get<0>()));
+	return sqrt((std::get<2>(tuple) / std::get<0>(tuple)) - (std::get<1>(tuple) / std::get<0>(tuple))*(std::get<1>(tuple) / std::get<0>(tuple)));
 }
 
 bool readYUV420(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
@@ -159,44 +158,23 @@ int main(int argc, char **argv) {
 	// --------------------------------------------------------------------
 	// parsing parameters...
 
-	namespace po = boost::program_options;
+	cxxopts::Options options(argv[0], "SI / TI Calculation Tool\nAssessment of IP-Based Applications, Telekom Innovation Laboratories, TU Berlin\nErnst-Reuter-Platz 7, 10587 Berlin, Germany\n");
+    options.add_options()
+        ("i,input-file", "input: images (BMP, TIFF, PNG, JPEG...), video (.avi, .mkv, .mp4, .yuv... )", cxxopts::value<std::string>())
+        ("w,width", "Width of the video (required for yuv).", cxxopts::value<int>())
+        ("h,height", "Height of the video (required for yuv).", cxxopts::value<int>())
+        ("f,color-format", "(int) Color representation of YUV format (1: YUV420p (default), 2: YUV422, 3: YUYV422 (YUY2), 4: YUYV422 (UYVY), 5: YUV444.", cxxopts::value<int>())
+        ("s,summary", "produce summary statistics (maximum, minimum) instead of per-frame information")
+        ("c,check-input", "Show in a window how frames are read");
 
-	po::positional_options_description p;
-	p.add("input-file", -1);
+    try {
+        options.parse(argc, argv);
+    } catch (...) {
+        std::cerr << options.help() << std::endl;
+        return -1;
+    }
 
-	po::options_description desc("Allowed options");
-	desc.add_options()
-			("help", "produce help message")
-			("input-file,i", po::value<std::string>(), "input: images (BMP, TIFF, PNG, JPEG...), video (.avi, .mkv, .mp4, .yuv... )")
-			("width,w", po::value< int >(), "Width of the video (required for yuv).")
-			("height,h", po::value< int >(), "Height of the video (required for yuv).")
-			("color-format,f", po::value< int >(), "(int) Color representation of YUV format (1: YUV420p (default), 2: YUV422, 3: YUYV422 (YUY2), 4: YUYV422 (UYVY), 5: YUV444")
-			("summary,s", "produce summary statistics (maximum, minimum) instead of per-frame information")
-			("check-input,c", "Show in a window how frames are read")
-	;
-
-	po::variables_map cli_arguments;
-	try {
-		po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), cli_arguments);
-		po::notify(cli_arguments);
-	} catch(boost::exception &) {
-		std::cerr << "Error incorect program options. See --help... \n";
-		return 0;
-	}
-
-
-	if (cli_arguments.count("help")) {
-		std::cout << "--------------------------------------------------------------------------------" << std::endl;
-		std::cout << "SI / TI Calculation Tool" << std::endl << std::endl;
-		std::cout << "Assessment of IP-Based Applications, Telekom Innovation Laboratories, TU Berlin" << std::endl;
-		std::cout << "Ernst-Reuter-Platz 7, 10587 Berlin, Germany" << std::endl;
-		std::cout << "--------------------------------------------------------------------------------" << std::endl;
-		std::cout << std::endl << std::endl;
-		std::cout << desc << std::endl;
-		return -1;
-	}
-
-	boost::function<bool (cv::Mat &mat)> readYUV;
+	std::function<bool (cv::Mat &mat)> readYUV;
 	FILE *f = NULL;
 	cv::VideoCapture capture;
 
@@ -207,24 +185,24 @@ int main(int argc, char **argv) {
 	int colorFormat = 1;
 	int frameCount = 0;
 
-	if(cli_arguments.count("height")) {
-		height = cli_arguments["height"].as<int>();
+	if(options.count("height")) {
+		height = options["height"].as<int>();
 	}
 
-	if(cli_arguments.count("width")) {
-		width = cli_arguments["width"].as<int>();
+	if(options.count("width")) {
+		width = options["width"].as<int>();
 	}
 
-	if(cli_arguments.count("summary")) {
+	if(options.count("summary")) {
 		summary = true;
 	}
 
-	if(cli_arguments.count("check-input")) {
+	if(options.count("check-input")) {
 		check = true;
 	}
 
-	if(cli_arguments.count("color-format")) {
-		colorFormat = cli_arguments["color-format"].as<int>();
+	if(options.count("color-format")) {
+		colorFormat = options["color-format"].as<int>();
 		if(colorFormat < 1 || colorFormat > 5) {
 			std::cerr << "Color format should be between 1-5, see --help\n";
 			return -1;
@@ -235,9 +213,8 @@ int main(int argc, char **argv) {
 	std::vector<unsigned char> buffer(width*height/2);
 
 
-
-	if(cli_arguments.count("input-file")) {
-		const std::string &input = cli_arguments["input-file"].as<std::string>();
+	if(options.count("input-file")) {
+		const std::string &input = options["input-file"].as<std::string>();
 
 		if(input.at(input.length()-3) == 'y' && input.at(input.length()-2) == 'u' && input.at(input.length()-1) == 'v') {
 			if(height == 0 || width == 0) {
@@ -253,23 +230,23 @@ int main(int argc, char **argv) {
 
 			switch(colorFormat) {
 				case 1:
-					readYUV = boost::bind(readYUV420, _1, f, &buffer[0]);
+					readYUV = std::bind(readYUV420, std::placeholders::_1, f, &buffer[0]);
 					break;
 
 				case 2:
-					readYUV = boost::bind(readYUV422, _1, f, &buffer[0]);
+					readYUV = std::bind(readYUV422, std::placeholders::_1, f, &buffer[0]);
 					break;
 
 				case 3:
-					readYUV = boost::bind(readYUYV422, _1, f, &buffer[0]);
+					readYUV = std::bind(readYUYV422, std::placeholders::_1, f, &buffer[0]);
 					break;
 
 				case 4:
-					readYUV = boost::bind(readUYVY422, _1, f, &buffer[0]);
+					readYUV = std::bind(readUYVY422, std::placeholders::_1, f, &buffer[0]);
 					break;
 
 				case 5:
-					readYUV = boost::bind(readYUV444, _1, f, &buffer[0]);
+					readYUV = std::bind(readYUV444, std::placeholders::_1, f, &buffer[0]);
 					break;
 
 				default:
@@ -286,7 +263,7 @@ int main(int argc, char **argv) {
 				return -1;
 			}
 
-			readYUV = boost::bind(grabFrame, _1, boost::ref(capture));
+			readYUV = std::bind(grabFrame, std::placeholders::_1, std::ref(capture));
 
 			width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 			height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
@@ -303,9 +280,6 @@ int main(int argc, char **argv) {
 		std::cerr << "Something happend, both width/height cannot be found... \n";
 		return -1;
 	}
-
-
-
 
 
 	// --------------------------------------------------------------------
