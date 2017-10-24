@@ -1,0 +1,20 @@
+# -*- coding: utf8 -*-
+import os
+import sys
+import glob
+import multiprocessing
+
+SetOption("num_jobs", multiprocessing.cpu_count()) # build with all available cpu cores/threads
+
+env = Environment()
+env.Decider("MD5")
+conf = Configure(env)
+
+env.ParseConfig('pkg-config --libs opencv')
+
+env.Append(CXXFLAGS=['-std=c++11'])
+
+sources = set(glob.glob("*.cpp") + glob.glob("*.c"))
+
+env.Program("siti", list(sources))
+
