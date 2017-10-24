@@ -4,7 +4,7 @@ A command-line-based tool for Windows to calculate spatial information (SI) and 
 
 ## Usage
 
-Use `bin/SITI.exe` to run the program.
+Use `bin/SITI.exe` to run the program under Windows. For Unix, please build it yourself.
 
 The following command line options are available:
 
@@ -28,15 +28,31 @@ If you use this program for your research, please provide a link to this reposit
 
 ## Building from source
 
-The source code is available as a Visual Studio project. See the `src` folder for more. Open `src/SITI.sln` for building it. Requirements:
+### Windows
 
-(- Windows)
-(- Visual Studio)
-(- Boost)
+Requirements:
+
+- Windows
 - OpenCV
-- gcc/compiler with c++11 support
+- Visual Studio
 
-An experimental Makefile for OS X / macOS/linux is available in `src/SITI/Makefile`. It requires Boost and OpenCV to be installed using Homebrew.
+Open `src/SITI.sln` for building the project in Visual Studio.
+
+### Linux / Unix / macOS
+
+Requirements:
+
+- [Scons](http://www.scons.org/pages/download.html)
+    - Ubuntu / Debian: `apt-get install scons`
+    - macOS: `brew install scons`
+- OpenCV
+    - Ubuntu / Debian: `apt-get install libopencv-dev`
+    - macOS: `brew install opencv`
+- `gcc` / compiler with C++11 support
+    - Ubuntu / Debian: `apt-get install build-essential`
+    - macOS: through XCode
+
+To build the program, go to `src/SITI/` and run `scons`. The result is a `siti` executable in the same folder.
 
 ## Background
 
@@ -69,7 +85,7 @@ The measure of temporal information (TI) is computed as the maximum over time (m
 
 GNU General Public License v3
 
-Copyright (c) 2016 Pierre Lebreton
+Copyright (c) 2016-2017 Pierre Lebreton, Werner Robitza, Steve Göring
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 
