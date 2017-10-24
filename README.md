@@ -30,12 +30,13 @@ If you use this program for your research, please provide a link to this reposit
 
 The source code is available as a Visual Studio project. See the `src` folder for more. Open `src/SITI.sln` for building it. Requirements:
 
-- Windows
-- Visual Studio
-- Boost
+(- Windows)
+(- Visual Studio)
+(- Boost)
 - OpenCV
+- gcc/compiler with c++11 support
 
-An experimental Makefile for OS X / macOS is available in `src/SITI/Makefile`. It requires Boost and OpenCV to be installed using Homebrew.
+An experimental Makefile for OS X / macOS/linux is available in `src/SITI/Makefile`. It requires Boost and OpenCV to be installed using Homebrew.
 
 ## Background
 
@@ -62,6 +63,7 @@ The measure of temporal information (TI) is computed as the maximum over time (m
 
 - Pierre Lebreton
 - Werner Robitza
+- Steve Göring
 
 ## License
 
