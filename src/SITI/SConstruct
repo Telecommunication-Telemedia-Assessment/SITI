@@ -10,7 +10,7 @@ env = Environment()
 env.Decider("MD5")
 conf = Configure(env)
 
-env.ParseConfig('pkg-config --libs opencv')
+env.ParseConfig('pkg-config --libs --static opencv')
 
 env.Append(CXXFLAGS=['-std=c++11'])
 
