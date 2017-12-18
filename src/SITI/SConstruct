@@ -12,7 +12,7 @@ conf = Configure(env)
 
 env.ParseConfig('pkg-config --libs --static opencv')
 
-env.Append(CXXFLAGS=['-std=c++11'])
+env.Append(CXXFLAGS=['-std=c++11', "-O3"])
 
 sources = set(glob.glob("*.cpp") + glob.glob("*.c"))
 
