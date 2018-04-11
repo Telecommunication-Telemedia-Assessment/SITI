@@ -314,7 +314,7 @@ int main(int argc, char **argv) {
 			for(int j = 1 ; j < width-1 ; ++j) {
 				double gx = -  static_cast<double>(frame1.data[POS(i-1,j-1)])
 						   -2*static_cast<double>(frame1.data[POS(i-1,j)])
-						   -  static_cast<double>(frame1.data[POS(i,j+1)])
+						   -  static_cast<double>(frame1.data[POS(i-1,j+1)])
 						   +  static_cast<double>(frame1.data[POS(i+1,j-1)])
 						   +2*static_cast<double>(frame1.data[POS(i+1,j)])
 						   +  static_cast<double>(frame1.data[POS(i+1,j+1)]);
