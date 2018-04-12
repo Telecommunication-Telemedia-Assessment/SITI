@@ -298,8 +298,14 @@ int main(int argc, char **argv) {
 	// write header
 	std::cout << "frameCount,SI,TI" << std::endl;
 
-	readYUV(frame1);
-	while(readYUV(frame2)) {
+	if (!readYUV(frame1)) {
+		std::cerr << "Could not read a single frame from YUV input file. Empty file?" << std::endl;
+		return -1;
+	}
+
+	while(true) {
+		const bool bFrame2 = readYUV(frame2);
+		
 		frameCount++;
 
 		if(check) {
@@ -329,18 +335,28 @@ int main(int argc, char **argv) {
 				double g = std::sqrt(gx*gx+gy*gy);
 
 				add(si, g);
-				add(ti, static_cast<double>(frame1.data[POS(i,j)])-static_cast<double>(frame2.data[POS(i,j)]));
+
+				if (bFrame2)
+					add(ti, static_cast<double>(frame1.data[POS(i,j)])-static_cast<double>(frame2.data[POS(i,j)]));
 			}
 		}
 
 		if (!summary) {
-			std::cout << frameCount << "," << stdev(si) << "," << stdev(ti) << std::endl;
+			std::cout << frameCount << "," << stdev(si);
+			if (bFrame2)
+				std::cout << "," << stdev(ti);
+			std::cout << std::endl;
 		}
 
 		maxSI = std::max(maxSI, stdev(si));
-		maxTI = std::max(maxTI, stdev(ti));
+		if (bFrame2)
+			maxTI = std::max(maxTI, stdev(ti));
 		minSI = std::min(minSI, stdev(si));
-		minTI = std::min(minTI, stdev(ti));
+		if (bFrame2)
+			minTI = std::min(minTI, stdev(ti));
+
+		if (!bFrame2)
+			break;
 
 		std::swap(frame1, frame2);
 	}
