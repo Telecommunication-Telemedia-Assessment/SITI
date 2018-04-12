@@ -19,7 +19,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <tuple>  // c++11 feature
 #include <functional> // c++11 feature
 
 #include "cxxopts.hpp"  // cli argument parsing
@@ -30,17 +29,18 @@
 
 typedef std::tuple<int, double, double> TSTD;
 
-void add(TSTD &tuple, double v) {
-	std::get<0>(tuple) ++;
-	std::get<1>(tuple) += v;
-	std::get<2>(tuple) += v*v;
-}
 
-double stdev(const TSTD &tuple) {
-	return sqrt((std::get<2>(tuple) / std::get<0>(tuple)) - (std::get<1>(tuple) / std::get<0>(tuple))*(std::get<1>(tuple) / std::get<0>(tuple)));
-}
+// #define USE_OCL 1
+
+#ifdef USE_OCL 
+	typedef cv::UMat cMat;
+#else
+	typedef cv::Mat cMat;
+#endif
+
 
 bool readYUV420(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
+	
 
 	// -----------------------------------------------------------
 	// Pix Format: YUV420p
@@ -56,12 +56,13 @@ bool readYUV420(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 		return false;
 	}
 
+
 	return true;
 }
 
 
 bool readYUV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-
+	
 	// -----------------------------------------------------------
 	// Pix Format: YUV422p
 
@@ -78,11 +79,12 @@ bool readYUV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 		}
 	}
 
+
 	return true;
 }
 
 bool readYUYV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-
+	
 	// -----------------------------------------------------------
 	// Pix Format: YUYV422
 
@@ -97,12 +99,14 @@ bool readYUYV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 		mat.data[2*i] = buf[0];
 		mat.data[2*i+1] = buf[2];
 	}
+
+
 	return true;
 }
 
 
 bool readUYVY422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-
+	
 	// -----------------------------------------------------------
 	// Pix Format: YUYV422
 
@@ -117,11 +121,13 @@ bool readUYVY422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 		mat.data[2*i] = buf[1];
 		mat.data[2*i+1] = buf[3];
 	}
+
+
 	return true;
 }
 
 bool readYUV444(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-
+	
 	// -----------------------------------------------------------
 	// Pix Format: YUV444p
 
@@ -138,20 +144,39 @@ bool readYUV444(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 		}
 	}
 
+	
 	return true;
 }
 
 #define POS(i,j)					(i)*width+(j)
 
 bool grabFrame(cv::Mat &mat, cv::VideoCapture &capture) {
+	
 	cv::Mat colorFrame;
 	capture >> colorFrame;
 
 	if(!colorFrame.empty())
 		cv::cvtColor(colorFrame, mat, CV_BGR2GRAY);
 
+	
 	return !colorFrame.empty();
 }
+
+
+double computeSI(const cMat& frame1, const cMat &maskValidSobel) {
+	cMat gx, gy, grad;
+	cv::Sobel(frame1, gx, CV_32F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
+	cv::Sobel(frame1, gy, CV_32F, 0, 1, 3, 1, 0, cv::BORDER_DEFAULT);
+	cv::add(gx.mul(gx), gy.mul(gy), grad);
+	cv::sqrt(grad, grad);
+
+	cv::Scalar meanSp, stddevSp;
+	cv::meanStdDev(grad, meanSp, stddevSp, maskValidSobel);
+
+	return stddevSp.val[0];
+}
+
+
 
 int main(int argc, char **argv) {
 
@@ -286,8 +311,12 @@ int main(int argc, char **argv) {
 	// estimate SI/TI per frame...
 
 
-	cv::Mat frame1(height, width, CV_8U);
-	cv::Mat frame2(height, width, CV_8U);
+	cv::Mat frame1(height, width, CV_8UC1);
+	cv::Mat frame2(height, width, CV_8UC1);
+
+	cMat	uframe1, uframe2;
+	cMat maskValidSobel(frame1.size(), CV_8UC1);
+	maskValidSobel(cv::Rect(1,1,width-1,height-1)) = 1;
 
 
 	double maxSI = std::numeric_limits<double>::min();
@@ -298,68 +327,56 @@ int main(int argc, char **argv) {
 	// write header
 	std::cout << "frameCount,SI,TI" << std::endl;
 
-	if (!readYUV(frame1)) {
-		std::cerr << "Could not read a single frame from YUV input file. Empty file?" << std::endl;
-		return -1;
-	}
-
-	while(true) {
-		const bool bFrame2 = readYUV(frame2);
-		
+	readYUV(frame1);
+	frame1.convertTo(uframe1, CV_32FC1);
+	
+	while(readYUV(frame2)) {
 		frameCount++;
-
+		frame2.convertTo(uframe2, CV_32FC1);
+		
 		if(check) {
-			cv::imshow("frame", frame2);
+			cv::Mat viz;
+			uframe2.copyTo(viz);
+			cv::imshow("frame", viz / 255.);
 			cv::waitKey(10);
 		}
 
-		TSTD si;
-		TSTD ti;
+		
+		double si = computeSI(uframe1, maskValidSobel);
 
-		for(int i = 1 ; i < height-1 ; ++i) {
-			for(int j = 1 ; j < width-1 ; ++j) {
-				double gx = -  static_cast<double>(frame1.data[POS(i-1,j-1)])
-						   -2*static_cast<double>(frame1.data[POS(i-1,j)])
-						   -  static_cast<double>(frame1.data[POS(i-1,j+1)])
-						   +  static_cast<double>(frame1.data[POS(i+1,j-1)])
-						   +2*static_cast<double>(frame1.data[POS(i+1,j)])
-						   +  static_cast<double>(frame1.data[POS(i+1,j+1)]);
+		maxSI = std::max(maxSI, si);
+		minSI = std::min(minSI, si);
 
-				double gy = -  static_cast<double>(frame1.data[POS(i-1,j-1)])
-						   -2*static_cast<double>(frame1.data[POS(i,j-1)])
-						   -  static_cast<double>(frame1.data[POS(i+1,j-1)])
-						   +  static_cast<double>(frame1.data[POS(i-1,j+1)])
-						   +2*static_cast<double>(frame1.data[POS(i,j+1)])
-						   +  static_cast<double>(frame1.data[POS(i+1,j+1)]);
+		cMat dt;
+		cv::subtract(uframe1, uframe2, dt);
 
-				double g = std::sqrt(gx*gx+gy*gy);
+		cv::Scalar meanT, stddevT;
+		cv::meanStdDev(dt, meanT, stddevT, maskValidSobel);
 
-				add(si, g);
-
-				if (bFrame2)
-					add(ti, static_cast<double>(frame1.data[POS(i,j)])-static_cast<double>(frame2.data[POS(i,j)]));
-			}
-		}
+		maxTI = std::max(maxTI, stddevT.val[0]);
+		minTI = std::min(minTI, stddevT.val[0]);
 
 		if (!summary) {
-			std::cout << frameCount << "," << stdev(si);
-			if (bFrame2)
-				std::cout << "," << stdev(ti);
-			std::cout << std::endl;
+			std::cout << frameCount << "," << si << "," << stddevT.val[0] << std::endl;
 		}
 
-		maxSI = std::max(maxSI, stdev(si));
-		if (bFrame2)
-			maxTI = std::max(maxTI, stdev(ti));
-		minSI = std::min(minSI, stdev(si));
-		if (bFrame2)
-			minTI = std::min(minTI, stdev(ti));
-
-		if (!bFrame2)
-			break;
-
-		std::swap(frame1, frame2);
+		std::swap(uframe1, uframe2);
 	}
+
+	if(!uframe1.empty()) {
+		double si = computeSI(uframe1, maskValidSobel);
+
+		frameCount++;
+
+		maxSI = std::max(maxSI, si);
+		minSI = std::min(minSI, si);
+
+		if (!summary) {
+			std::cout << frameCount << "," << si << ","  << std::endl;
+		}
+	}
+
+
 
 	if (summary) {
 		std::cout << "maxSI: " << maxSI << std::endl;
