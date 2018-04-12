@@ -335,9 +335,14 @@ int main(int argc, char **argv) {
 				double g = std::sqrt(gx*gx+gy*gy);
 
 				add(si, g);
+			}
+		}
 
-				if (bFrame2)
+		if (bFrame2) {
+			for(int i = 0 ; i < height; ++i) {
+				for(int j = 0; j < width; ++j) {
 					add(ti, static_cast<double>(frame1.data[POS(i,j)])-static_cast<double>(frame2.data[POS(i,j)]));
+				}
 			}
 		}
 
