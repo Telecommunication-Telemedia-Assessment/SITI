@@ -30,7 +30,7 @@
 typedef std::tuple<int, double, double> TSTD;
 
 
-// #define USE_OCL 1
+#define USE_OCL 1
 
 #ifdef USE_OCL 
 	typedef cv::UMat cMat;
@@ -325,14 +325,15 @@ int main(int argc, char **argv) {
 	double minTI = std::numeric_limits<double>::max();
 
 	// write header
-	std::cout << "frameCount,SI,TI" << std::endl;
+	std::cerr << "frameCount,SI,TI" << std::endl;
 
 	readYUV(frame1);
 	frame1.convertTo(uframe1, CV_32FC1);
 	
 	while(readYUV(frame2)) {
 		frameCount++;
-		frame2.convertTo(uframe2, CV_32FC1);
+		frame2.copyTo(uframe2);
+		uframe2.convertTo(uframe2, CV_32FC1);
 		
 		if(check) {
 			cv::Mat viz;
@@ -357,7 +358,7 @@ int main(int argc, char **argv) {
 		minTI = std::min(minTI, stddevT.val[0]);
 
 		if (!summary) {
-			std::cout << frameCount << "," << si << "," << stddevT.val[0] << std::endl;
+			std::cerr << frameCount << "," << si << "," << stddevT.val[0] << std::endl;
 		}
 
 		std::swap(uframe1, uframe2);
@@ -372,17 +373,17 @@ int main(int argc, char **argv) {
 		minSI = std::min(minSI, si);
 
 		if (!summary) {
-			std::cout << frameCount << "," << si << ","  << std::endl;
+			std::cerr << frameCount << "," << si << ","  << std::endl;
 		}
 	}
 
 
 
 	if (summary) {
-		std::cout << "maxSI: " << maxSI << std::endl;
-		std::cout << "maxTI: " << maxTI << std::endl;
-		std::cout << "minSI: " << minSI << std::endl;
-		std::cout << "minTI: " << minTI << std::endl;
+		std::cerr << "maxSI: " << maxSI << std::endl;
+		std::cerr << "maxTI: " << maxTI << std::endl;
+		std::cerr << "minSI: " << minSI << std::endl;
+		std::cerr << "minTI: " << minTI << std::endl;
 	}
 
 	return 0;
