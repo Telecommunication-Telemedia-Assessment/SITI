@@ -30,9 +30,9 @@
 typedef std::tuple<int, double, double> TSTD;
 
 
-#define USE_OCL 1
+//#define USE_OCL 1
 
-#ifdef USE_OCL 
+#ifdef USE_OCL
 	typedef cv::UMat cMat;
 #else
 	typedef cv::Mat cMat;
@@ -40,8 +40,6 @@ typedef std::tuple<int, double, double> TSTD;
 
 
 bool readYUV420(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-	
-
 	// -----------------------------------------------------------
 	// Pix Format: YUV420p
 
@@ -62,7 +60,7 @@ bool readYUV420(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 
 
 bool readYUV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-	
+
 	// -----------------------------------------------------------
 	// Pix Format: YUV422p
 
@@ -84,7 +82,7 @@ bool readYUV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 }
 
 bool readYUYV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-	
+
 	// -----------------------------------------------------------
 	// Pix Format: YUYV422
 
@@ -106,7 +104,7 @@ bool readYUYV422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 
 
 bool readUYVY422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-	
+
 	// -----------------------------------------------------------
 	// Pix Format: YUYV422
 
@@ -127,7 +125,7 @@ bool readUYVY422(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 }
 
 bool readYUV444(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
-	
+
 	// -----------------------------------------------------------
 	// Pix Format: YUV444p
 
@@ -144,21 +142,21 @@ bool readYUV444(cv::Mat &mat, FILE *vf, unsigned char *buffer) {
 		}
 	}
 
-	
+
 	return true;
 }
 
 #define POS(i,j)					(i)*width+(j)
 
 bool grabFrame(cv::Mat &mat, cv::VideoCapture &capture) {
-	
+
 	cv::Mat colorFrame;
 	capture >> colorFrame;
 
 	if(!colorFrame.empty())
 		cv::cvtColor(colorFrame, mat, CV_BGR2GRAY);
 
-	
+
 	return !colorFrame.empty();
 }
 
@@ -235,7 +233,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	std::vector<unsigned char> buffer(width*height/2);
+	std::vector<unsigned char> buffer(width * height / 2);
 
 
 	if(options.count("input-file")) {
@@ -310,7 +308,6 @@ int main(int argc, char **argv) {
 	// --------------------------------------------------------------------
 	// estimate SI/TI per frame...
 
-
 	cv::Mat frame1(height, width, CV_8UC1);
 	cv::Mat frame2(height, width, CV_8UC1);
 
@@ -329,12 +326,12 @@ int main(int argc, char **argv) {
 
 	readYUV(frame1);
 	frame1.convertTo(uframe1, CV_32FC1);
-	
+
 	while(readYUV(frame2)) {
 		frameCount++;
 		frame2.copyTo(uframe2);
 		uframe2.convertTo(uframe2, CV_32FC1);
-		
+
 		if(check) {
 			cv::Mat viz;
 			uframe2.copyTo(viz);
@@ -342,7 +339,7 @@ int main(int argc, char **argv) {
 			cv::waitKey(10);
 		}
 
-		
+
 		double si = computeSI(uframe1, maskValidSobel);
 
 		maxSI = std::max(maxSI, si);
