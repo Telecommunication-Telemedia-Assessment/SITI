@@ -1,21 +1,17 @@
-import matplotlib.pyplot as plt
+"""
+@author: stg7
+"""
 import pandas as pd
+import glob
 
 videos_list = []
-for i in range(1, 10):
-  videos_list.append(i)
+df = pd.DataFrame()
+for x in list(glob.glob("*.csv")):
+    tmp = pd.read_csv(x, delimiter=",")
+    tmp["SRC"] = x.replace(".csv", "")
+    df = df.append(tmp, ignore_index=True)
 
-SI_TI = pd.DataFrame()
+import seaborn as sns
 
-for v in videos_list:
-  df = pd.read_csv("%s.txt" % (v))
-  SI_TI[v-1] = [df["SI"].max(), df["TI"].max()]
-
-SI_TI = SI_TI.T
-SI_TI.columns = ["SI", "TI"]
-
-ax = SI_TI.plot(style='o')
-ax.set_xticklabels(videos_list)
-plt.xlabel("Content")
-plt.ylabel("SI/TI")
-plt.savefig("SITI_analysis.png", dpi=300, bbox_inches='tight')
+ax = sns.lmplot(x="SI", y="TI", hue="SRC", data=df, fit_reg =False)
+ax.savefig("multiplot_SITI.jpg", dpi=200)
