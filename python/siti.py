@@ -106,6 +106,6 @@ def main(_):
     all_df.to_csv(a["output_file"], index=False)
     print("done")
 
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
-
