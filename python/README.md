@@ -4,7 +4,7 @@
 
 ## requirements
 * python3, with the following packages
-    * numpy, pandas, skvideo, scipy
+    * numpy, pandas, scikit-video, scipy
 
 ## usage
 see `./siti.py --help`:
