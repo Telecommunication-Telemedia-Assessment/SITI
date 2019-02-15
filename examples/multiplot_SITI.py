@@ -13,5 +13,7 @@ for x in list(glob.glob("*.csv")):
 
 import seaborn as sns
 
-ax = sns.lmplot(x="SI", y="TI", hue="SRC", data=df, fit_reg =False)
+ax = sns.lmplot(x="SI", y="TI", hue="SRC", data=df, fit_reg=False)
+# ax.set(alpha=0.5, xlim=(0, 110))
 ax.savefig("multiplot_SITI.jpg", dpi=200)
+# ax.savefig("multiplot_SITI.pdf")
