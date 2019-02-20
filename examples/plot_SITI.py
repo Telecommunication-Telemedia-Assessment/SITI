@@ -12,8 +12,8 @@ def read_siti(filename):
         SI.append(float(c[1]))
         TI.append(float(c[2]))
       except:
-        print l
-    return(SI,TI)
+        print("threre was an error with line: " + l)
+    return SI, TI
 
 SI, TI = read_siti('example.txt')
 
