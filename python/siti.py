@@ -41,9 +41,6 @@ class Feature:
 
 
 class SiFeatures(Feature):
-    def __init__(self):
-        self._values = []
-
     def calc(self, frame):
         sobx = ndimage.sobel(frame, axis=0)
         soby = ndimage.sobel(frame, axis=1)
