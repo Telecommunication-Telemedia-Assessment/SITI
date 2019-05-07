@@ -71,6 +71,11 @@ def analyze_video(video):
     }
     i = 0
     for frame in skvideo.io.vreader(video, as_grey=True):
+        if len(frame.shape) > 2:
+            width = frame.shape[-2]
+            height = frame.shape[-3]
+            frame = frame.reshape((height, width))
+
         print("frame {} of video {}".format(i, video))
         for feature in features:
             v = features[feature].calc(frame)
