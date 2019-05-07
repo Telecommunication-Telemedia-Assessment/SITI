@@ -21,6 +21,7 @@ import os
 import json
 from multiprocessing import Pool
 import multiprocessing
+from scipy import ndimage
 
 import numpy as np
 import pandas as pd
@@ -44,7 +45,6 @@ class SiFeatures(Feature):
         self._values = []
 
     def calc(self, frame):
-        from scipy import ndimage
         value = ndimage.sobel(frame).std()
         self._values.append(value)
         return value
