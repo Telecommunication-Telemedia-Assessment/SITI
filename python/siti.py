@@ -38,7 +38,8 @@ class Feature(ABC):
     def calc(self, frame):
         pass
 
-    def get_values(self):
+    @property
+    def values(self):
         return self._values
 
 
@@ -87,7 +88,7 @@ def analyze_video(video):
 
     result = {}
     for feature in features:
-        result[feature] = features[feature].get_values()
+        result[feature] = features[feature].values
     df = pd.DataFrame(result)
     df["frame"] = range(len(df))
     df["video"] = video
