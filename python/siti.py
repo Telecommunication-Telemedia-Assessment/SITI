@@ -76,6 +76,8 @@ def analyze_video(video):
             height = frame.shape[-3]
             frame = frame.reshape((height, width))
 
+        frame = frame.astype('float32')
+
         print("frame {} of video {}".format(i, video))
         for feature in features:
             v = features[feature].calc(frame)
