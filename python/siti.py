@@ -70,7 +70,7 @@ def analyze_video(video):
         "ti": TiFeatures()
     }
     i = 0
-    for frame in skvideo.io.vreader(video):
+    for frame in skvideo.io.vreader(video, as_grey=True):
         print("frame {} of video {}".format(i, video))
         for feature in features:
             v = features[feature].calc(frame)
