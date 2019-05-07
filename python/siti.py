@@ -51,7 +51,7 @@ class SiFeatures(Feature):
 
 class TiFeatures(Feature):
     def __init__(self):
-        self._values = []
+        super().__init__()
         self._previous_frame = None
 
     def calc(self, frame):
