@@ -45,7 +45,9 @@ class SiFeatures(Feature):
         self._values = []
 
     def calc(self, frame):
-        value = ndimage.sobel(frame).std()
+        sobx = ndimage.sobel(frame, axis=0)
+        soby = ndimage.sobel(frame, axis=1)
+        value = np.hypot(sobx, soby).std()
         self._values.append(value)
         return value
 
