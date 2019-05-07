@@ -19,6 +19,7 @@ import argparse
 import sys
 import os
 import json
+from abc import ABC, abstractmethod
 from multiprocessing import Pool
 import multiprocessing
 from scipy import ndimage
@@ -29,12 +30,13 @@ import skvideo.io
 import scipy
 
 
-class Feature:
+class Feature(ABC):
     def __init__(self):
         self._values = []
 
+    @abstractmethod
     def calc(self, frame):
-        raise NotImplementedError("not implemented")
+        pass
 
     def get_values(self):
         return self._values
