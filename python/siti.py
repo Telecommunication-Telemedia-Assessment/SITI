@@ -17,17 +17,13 @@
 
 import argparse
 import sys
-import os
-import json
 from abc import ABC, abstractmethod
 from multiprocessing import Pool
 import multiprocessing
 from scipy import ndimage
-
 import numpy as np
 import pandas as pd
 import skvideo.io
-import scipy
 
 
 class Feature(ABC):
