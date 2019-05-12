@@ -17,42 +17,40 @@
 
 import argparse
 import sys
-import os
-import json
+from abc import ABC, abstractmethod
 from multiprocessing import Pool
 import multiprocessing
-
+from scipy import ndimage
 import numpy as np
 import pandas as pd
 import skvideo.io
-import scipy
 
 
-class Feature:
+class Feature(ABC):
     def __init__(self):
         self._values = []
 
+    @abstractmethod
     def calc(self, frame):
-        raise NotImplementedError("not implemented")
+        pass
 
-    def get_values(self):
+    @property
+    def values(self):
         return self._values
 
 
 class SiFeatures(Feature):
-    def __init__(self):
-        self._values = []
-
     def calc(self, frame):
-        from scipy import ndimage
-        value = ndimage.sobel(frame).std()
+        sobx = ndimage.sobel(frame, axis=0)
+        soby = ndimage.sobel(frame, axis=1)
+        value = np.hypot(sobx, soby).std()
         self._values.append(value)
         return value
 
 
 class TiFeatures(Feature):
     def __init__(self):
-        self._values = []
+        super().__init__()
         self._previous_frame = None
 
     def calc(self, frame):
@@ -70,7 +68,14 @@ def analyze_video(video):
         "ti": TiFeatures()
     }
     i = 0
-    for frame in skvideo.io.vreader(video):
+    for frame in skvideo.io.vreader(video, as_grey=True):
+        if len(frame.shape) > 2:
+            width = frame.shape[-2]
+            height = frame.shape[-3]
+            frame = frame.reshape((height, width))
+
+        frame = frame.astype('float32')
+
         print("frame {} of video {}".format(i, video))
         for feature in features:
             v = features[feature].calc(frame)
@@ -79,7 +84,7 @@ def analyze_video(video):
 
     result = {}
     for feature in features:
-        result[feature] = features[feature].get_values()
+        result[feature] = features[feature].values
     df = pd.DataFrame(result)
     df["frame"] = range(len(df))
     df["video"] = video
