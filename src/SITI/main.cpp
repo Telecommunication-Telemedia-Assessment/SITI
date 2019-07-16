@@ -154,7 +154,7 @@ bool grabFrame(cv::Mat &mat, cv::VideoCapture &capture) {
 	capture >> colorFrame;
 
 	if(!colorFrame.empty())
-		cv::cvtColor(colorFrame, mat, CV_BGR2GRAY);
+		cv::cvtColor(colorFrame, mat, cv::COLOR_BGR2GRAY);
 
 
 	return !colorFrame.empty();
@@ -288,8 +288,8 @@ int main(int argc, char **argv) {
 
 			readYUV = std::bind(grabFrame, std::placeholders::_1, std::ref(capture));
 
-			width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
-			height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+			width = capture.get(cv::CAP_PROP_FRAME_WIDTH);
+			height = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
 
 		}
 	}
