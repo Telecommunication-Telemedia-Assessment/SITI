@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    Copyright 2018 Steve Göring
+    Copyright 2018--today Steve Göring
 
     This file is part of SITI.
     SITI is free software: you can redistribute it and/or modify
@@ -20,6 +20,7 @@ import sys
 from abc import ABC, abstractmethod
 from multiprocessing import Pool
 import multiprocessing
+
 from scipy import ndimage
 import numpy as np
 import pandas as pd
@@ -69,13 +70,7 @@ def analyze_video(video):
     }
     i = 0
     for frame in skvideo.io.vreader(video, as_grey=True):
-        if len(frame.shape) > 2:
-            width = frame.shape[-2]
-            height = frame.shape[-3]
-            frame = frame.reshape((height, width))
-
-        frame = frame.astype('float32')
-
+        frame = frame[0].astype('float32')  # if as_grey is used skvideo returns array of frames, even if we only want one frame
         print("frame {} of video {}".format(i, video))
         for feature in features:
             v = features[feature].calc(frame)
