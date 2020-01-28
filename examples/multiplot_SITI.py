@@ -26,7 +26,7 @@ if args.order_srcs:
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-sns.set_style("whitegrid")
+sns.set_style("white")
 if args.order_srcs:
     ax = sns.lmplot(x="SI", y="TI", hue="SRC", data=df, fit_reg=False, legend=False, hue_order=hue_order)
     plt.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=8)
