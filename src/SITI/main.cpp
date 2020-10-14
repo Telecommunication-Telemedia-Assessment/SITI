@@ -19,6 +19,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <list>
 #include <functional> // c++11 feature
 #include <numeric>
 
@@ -317,13 +318,14 @@ int main(int argc, char **argv) {
 	maskValidSobel(cv::Rect(1,1,width-1,height-1)) = 1;
 
 	// write header
-	std::cerr << "frameCount,SI,TI" << std::endl;
+	if(!summary) 
+		std::cerr << "frameCount,SI,TI" << std::endl;
 
 	readYUV(frame1);
 	frame1.convertTo(uframe1, CV_32FC1);
 
-	std::vector<double> siList;
-	std::vector<double> tiList;
+	std::list<double> siList;
+	std::list<double> tiList;
 
 	while(readYUV(frame2)) {
 		frameCount++;
