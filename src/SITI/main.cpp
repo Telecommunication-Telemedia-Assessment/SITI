@@ -19,7 +19,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <list>
 #include <functional> // c++11 feature
 #include <numeric>
 
@@ -324,8 +323,8 @@ int main(int argc, char **argv) {
 	readYUV(frame1);
 	frame1.convertTo(uframe1, CV_32FC1);
 
-	std::list<double> siList;
-	std::list<double> tiList;
+	std::vector<double> siList;
+	std::vector<double> tiList;
 
 	while(readYUV(frame2)) {
 		frameCount++;
