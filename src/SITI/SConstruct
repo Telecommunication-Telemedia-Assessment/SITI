@@ -11,9 +11,11 @@ env.Decider("MD5")
 conf = Configure(env)
 
 try:
-    env.ParseConfig('pkg-config --cflags --libs opencv')  # static build does not work anymore with default opencv ubuntu package
+    # default case for ubuntu 18.04
+    env.ParseConfig('pkg-config --cflags --libs opencv')
 except OSError as e:
     print("use opencv4")
+    # case for ubuntu 20.04, 21.04
     env.ParseConfig('pkg-config --cflags --libs opencv4')
 
 
