@@ -10,7 +10,13 @@ env = Environment()
 env.Decider("MD5")
 conf = Configure(env)
 
-env.ParseConfig('pkg-config --cflags --libs opencv4')  # static build does not work anymore with default opencv ubuntu package
+if not conf.CheckLib('opencv4'):
+    env.ParseConfig('pkg-config --cflags --libs opencv')
+elif conf.CheckLib('opencv'):
+    env.ParseConfig('pkg-config --cflags --libs opencv4')  # static build does not work anymore with default opencv ubuntu package
+else:
+    print("please install opencv4 or opencv")
+    sys.exit(0)
 
 env.Append(CXXFLAGS=['-std=c++11', "-O3", "-g"])
 
