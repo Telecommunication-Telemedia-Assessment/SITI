@@ -20,6 +20,7 @@
 #include <fstream>
 #include <vector>
 #include <functional> // c++11 feature
+#include <numeric>
 
 #include "cxxopts.hpp"  // cli argument parsing
 
@@ -316,17 +317,15 @@ int main(int argc, char **argv) {
 	cMat maskValidSobel(frame1.size(), CV_8UC1);
 	maskValidSobel(cv::Rect(1,1,width-1,height-1)) = 1;
 
-
-	double maxSI = std::numeric_limits<double>::min();
-	double maxTI = std::numeric_limits<double>::min();
-	double minSI = std::numeric_limits<double>::max();
-	double minTI = std::numeric_limits<double>::max();
-
 	// write header
-	std::cerr << "frameCount,SI,TI" << std::endl;
+	if(!summary) 
+		std::cerr << "frameCount,SI,TI" << std::endl;
 
 	readYUV(frame1);
 	frame1.convertTo(uframe1, CV_32FC1);
+
+	std::vector<double> siList;
+	std::vector<double> tiList;
 
 	while(readYUV(frame2)) {
 		frameCount++;
@@ -343,21 +342,18 @@ int main(int argc, char **argv) {
 
 		double si = computeSI(uframe1, maskValidSobel);
 
-		maxSI = std::max(maxSI, si);
-		minSI = std::min(minSI, si);
-
 		cMat dt;
 		cv::subtract(uframe1, uframe2, dt);
 
 		cv::Scalar meanT, stddevT;
 		cv::meanStdDev(dt, meanT, stddevT, maskValidSobel);
 
-		maxTI = std::max(maxTI, stddevT.val[0]);
-		minTI = std::min(minTI, stddevT.val[0]);
-
 		if (!summary) {
 			std::cerr << frameCount << "," << si << "," << stddevT.val[0] << std::endl;
 		}
+
+		siList.push_back(si);
+		tiList.push_back(stddevT.val[0]);
 
 		std::swap(uframe1, uframe2);
 	}
@@ -367,23 +363,23 @@ int main(int argc, char **argv) {
 
 		frameCount++;
 
-		maxSI = std::max(maxSI, si);
-		minSI = std::min(minSI, si);
-
 		if (!summary) {
 			std::cerr << frameCount << "," << si << ","  << std::endl;
 		}
+
+		siList.push_back(si);
 	}
 
 
 
 	if (summary) {
-		std::cerr << "maxSI: " << maxSI << std::endl;
-		std::cerr << "maxTI: " << maxTI << std::endl;
-		std::cerr << "minSI: " << minSI << std::endl;
-		std::cerr << "minTI: " << minTI << std::endl;
+		std::cerr << "maxSI: " << *std::max_element(siList.begin(), siList.end()) << std::endl;
+		std::cerr << "maxTI: " << *std::max_element(tiList.begin(), tiList.end()) << std::endl;
+		std::cerr << "minSI: " << *std::min_element(siList.begin(), siList.end()) << std::endl;
+		std::cerr << "minTI: " << *std::min_element(tiList.begin(), tiList.end()) << std::endl;
+		std::cerr << "meanSI: " << std::accumulate(siList.begin(), siList.end(), 0.0) / siList.size() << std::endl;
+		std::cerr << "meanTI: " << std::accumulate(tiList.begin(), tiList.end(), 0.0) / siList.size() << std::endl;
 	}
 
 	return 0;
 }
-
