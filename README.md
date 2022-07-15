@@ -2,6 +2,8 @@
 
 A command-line-based tool for Windows to calculate spatial information (SI) and temporal information (TI) according to ITU-T P.910.
 
+**:warning: This tool uses a legacy computation for SI/TI and is no longer being maintained. Please see https://github.com/VQEG/siti-tools for a reference implementation for SI/TI according to the latest version of ITU-T P.910.**
+
 ## Usage
 
 Use `bin/SITI.exe` to run the program under Windows. For Unix, please build it yourself.
